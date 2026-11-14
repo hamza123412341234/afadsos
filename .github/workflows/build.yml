@@ -7,26 +7,32 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Kodlari Cek
         uses: actions/checkout@v4
 
-      - name: Buildozer Ayar Dosyasi Olustur
+      - name: Sistem Paketlerini Kur
         run: |
-          pip install buildozer cython==0.29.33
+          sudo apt-get update
+          sudo apt-get install -y \
+            git zip unzip openjdk-17-jdk python3-pip autoconf libtool \
+            pkg-config zlib1g-dev libncurses-dev cmake libffi-dev libssl-dev \
+            automake build-essential
+
+      - name: Buildozer Kur ve Ayarla
+        run: |
+          pip install --break-system-packages buildozer cython
           yes | buildozer init
           sed -i 's/requirements = python3,kivy/requirements = python3,kivy,pyjnius,android/' buildozer.spec
           sed -i 's/#android.permissions = INTERNET/android.permissions = BLUETOOTH,BLUETOOTH_ADMIN,BLUETOOTH_ADVERTISE,BLUETOOTH_CONNECT,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,WAKE_LOCK,POST_NOTIFICATIONS,MODIFY_AUDIO_SETTINGS/' buildozer.spec
           sed -i 's/#android.api = 31/android.api = 33/' buildozer.spec
           sed -i 's/#android.minapi = 21/android.minapi = 24/' buildozer.spec
 
-      - name: APK Derle (Resmi Buildozer Action)
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          command: buildozer -v android debug
-          buildozer_version: stable
+      - name: APK Derle
+        run: |
+          yes | buildozer -v android debug
 
       - name: APK Dosyasini Yukle
         uses: actions/upload-artifact@v4
