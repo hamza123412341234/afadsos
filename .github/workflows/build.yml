@@ -22,9 +22,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            git zip unzip openjdk-17-jdk autoconf libtool \
+            git zip unzip openjdk-17-jdk python3-pip autoconf libtool \
             pkg-config zlib1g-dev libncurses-dev cmake libffi-dev libssl-dev \
-            automake build-essential
+            automake build-essential ccache
 
       - name: Buildozer Kur ve Ayarla
         run: |
@@ -35,8 +35,12 @@ jobs:
           sed -i 's/#android.api = 31/android.api = 33/' buildozer.spec
           sed -i 's/#android.minapi = 21/android.minapi = 24/' buildozer.spec
           sed -i 's/#android.ndk = 25b/android.ndk = 25b/' buildozer.spec
+          sed -i 's/#p4a.branch = master/p4a.branch = develop/' buildozer.spec
+          echo "p4a.extra_args = --no-compile-pyo" >> buildozer.spec
 
       - name: APK Derle
+        env:
+          USE_CYTHON: "0.29.33"
         run: |
           yes | buildozer -v android debug
 
