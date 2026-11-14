@@ -1,0 +1,50 @@
+name: Build AFAD SOS APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Kodlari Cek
+        uses: actions/checkout@v4
+
+      - name: Python Kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Sistem Paketlerini Yukle
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential git python3-dev ffmpeg libsdl2-dev \
+            libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
+            zlib1g-dev libgstreamer1.0 gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good openjdk-17-jdk autoconf libtool \
+            pkg-config libncurses5-dev libncursesw5-dev libtinfo5 \
+            cmake libffi-dev libssl-dev unzip zip
+
+      - name: Buildozer Kur ve Ayarla
+        run: |
+          pip install buildozer cython==0.29.33
+          yes | buildozer init
+          sed -i 's/requirements = python3,kivy/requirements = python3,kivy,pyjnius,android/' buildozer.spec
+          sed -i 's/#android.permissions = INTERNET/android.permissions = BLUETOOTH,BLUETOOTH_ADMIN,BLUETOOTH_ADVERTISE,BLUETOOTH_CONNECT,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,WAKE_LOCK,POST_NOTIFICATIONS,MODIFY_AUDIO_SETTINGS/' buildozer.spec
+          sed -i 's/#android.api = 31/android.api = 33/' buildozer.spec
+          sed -i 's/#android.minapi = 21/android.minapi = 24/' buildozer.spec
+
+      - name: APK Derle
+        run: |
+          yes | buildozer -v android debug
+
+      - name: APK Dosyasini Yukle
+        uses: actions/upload-artifact@v4
+        with:
+          name: afad-kazazede-apk
+          path: bin/*.apk
