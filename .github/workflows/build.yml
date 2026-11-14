@@ -13,23 +13,7 @@ jobs:
       - name: Kodlari Cek
         uses: actions/checkout@v4
 
-      - name: Python Kur
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Sistem Paketlerini Yukle
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential git python3-dev ffmpeg libsdl2-dev \
-            libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
-            zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good openjdk-17-jdk autoconf libtool \
-            pkg-config libncurses-dev cmake libffi-dev libssl-dev unzip zip
-
-      - name: Buildozer Kur ve Ayarla
+      - name: Buildozer Ayar Dosyasi Olustur
         run: |
           pip install buildozer cython==0.29.33
           yes | buildozer init
@@ -38,9 +22,11 @@ jobs:
           sed -i 's/#android.api = 31/android.api = 33/' buildozer.spec
           sed -i 's/#android.minapi = 21/android.minapi = 24/' buildozer.spec
 
-      - name: APK Derle
-        run: |
-          yes | buildozer -v android debug
+      - name: APK Derle (Resmi Buildozer Action)
+        uses: ArtemSBulgakov/buildozer-action@v1
+        with:
+          command: buildozer -v android debug
+          buildozer_version: stable
 
       - name: APK Dosyasini Yukle
         uses: actions/upload-artifact@v4
